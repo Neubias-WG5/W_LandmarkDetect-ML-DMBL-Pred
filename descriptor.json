@@ -1,5 +1,5 @@
 {
-    "name": "LandmarkDetect-ML-DMBL-Pred-Prime",
+    "name": "LandmarkDetect-ML-DMBL-Pred",
     "container-image": {
         "image": "neubiaswg5/w_landmarkdetect-ml-dmbl-pred",
         "type": "singularity"
