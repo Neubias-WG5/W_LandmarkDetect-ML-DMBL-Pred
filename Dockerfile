@@ -1,6 +1,6 @@
 FROM python:3.6
 
-RUN pip install https://github.com/Cytomine-ULiege/LandmarkTools/archive/v0.0.3.zip
+RUN pip install https://github.com/Cytomine-ULiege/LandmarkTools/archive/v0.0.4.zip
 # --------------------------------------------------------------------------------------------
 # Install Cytomine python client
 RUN git clone https://github.com/cytomine-uliege/Cytomine-python-client.git
