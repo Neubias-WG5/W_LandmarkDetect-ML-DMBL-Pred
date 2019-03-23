@@ -33,7 +33,7 @@ import scipy.ndimage as snd
 from sklearn.externals import joblib
 import sys, os
 from neubiaswg5 import CLASS_LNDDET
-from neubiaswg5.helpers import NeubiasJob, prepare_data, get_discipline
+from neubiaswg5.helpers import NeubiasJob, prepare_data, get_discipline, upload_data, upload_metrics
 from cytomine.models import Job, AttachedFile, Property
 import joblib
 
@@ -236,7 +236,7 @@ def main():
 		edge_filepath = os.path.join(in_path, "model_edges.joblib")
 		edge_file.download(edge_filepath, override=True)
 		edges = joblib.load(edge_filepath)
-		for j in conn.monitor(pr_ims, start=66, end=100, period=0.05,prefix="Phase 3 for images..."):
+		for j in conn.monitor(pr_ims, start=66, end=90, period=0.05,prefix="Phase 3 for images..."):
 			filesave = os.path.join(out_path, 'pmap2_%d_%d.npy.npz' % (j, term_list[0]))
 			probability_map = np.load(filesave)['arr_0']
 			(hpmap,wpmap) = probability_map.shape
@@ -252,7 +252,10 @@ def main():
 				y = int(y_final[i])
 				lbl_img[y, x] = term_list[i]
 			imwrite(path=os.path.join(out_path, '%d.tif' % j), image=lbl_img.astype(np.uint8), is_2d=True)
-		conn.job.update(progress=100, status=Job.TERMINATED, statusComment="Job terminated.")
+		upload_data(problem_cls, conn, in_images, out_path, **conn.flags, is_2d=True, monitor_params={"start": 90, "end": 95, "period": 0.1})
+		conn.job.update(progress=90, statusComment="Computing and uploading metrics (if necessary)...")
+		upload_metrics(problem_cls, conn, in_images, gt_path, out_path, tmp_path, **conn.flags)
+		conn.job.update(status=Job.TERMINATED, progress=100, statusComment="Finished.")
 
 if __name__ == "__main__":
 	main()
