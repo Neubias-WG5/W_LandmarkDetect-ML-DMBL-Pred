@@ -155,7 +155,7 @@ def compute_final_solution_phase_3(xc, yc, probability_map_phase_2, ncandidates,
 			g.append('f2_%d_%d' % (ip, ipl), nodes[ipl])
 
 	for i in range(nldms):
-		v = probability_map_phase_2[np.array(y_candidates[i]), np.array(x_candidates[i]), i]
+		v = probability_map_phase_2[np.array(y_candidates[i]).astype('int'), np.array(x_candidates[i]).astype('int'), i]
 		g.add(Factor('f1_%d' % i, v / np.sum(v)))
 		g.append('f1_%d' % i, nodes[i])
 
