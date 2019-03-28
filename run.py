@@ -85,6 +85,8 @@ def agregation_phase_2(repository, image_number, ip, probability_maps, reg, delt
 
 
 def build_bmat_phase_3(xc, yc, T, x_candidates, y_candidates, edges, sde):
+	print("deze x_kandidaten zn", x_candidates)
+	print("deze y_kandidaten zn", y_candidates)
 	B_mat = {}  # np.zeros((ncandidates,ncandidates,T*nldms))
 
 	c = 0
@@ -124,28 +126,19 @@ def build_bmat_phase_3(xc, yc, T, x_candidates, y_candidates, edges, sde):
 
 def compute_final_solution_phase_3(xc, yc, probability_map_phase_2, ncandidates, sde, delta, T, edges):
 	(height, width, nldms) = probability_map_phase_2.shape
-	# nldms-=1
 	x_candidates = []  # np.zeros((nldms,ncandidates))
 	y_candidates = []  # np.zeros((nldms,ncandidates))
 
 	for i in range(nldms):
-		val = -np.sort(-probability_map_phase_2[:, :, i].flatten())[ncandidates]
-		if (val > 0):
-			(y, x) = np.where(probability_map_phase_2[:, :, i] >= val)
-		else:
-			(y, x) = np.where(probability_map_phase_2[:, :, i] > val)
-
-		if (y.size > ncandidates):
-			vals = -probability_map_phase_2[y, x, i]
-			order = np.argsort(vals)[0:ncandidates]
-			y = y[order]
-			x = x[order]
-
+		(y, x) = np.where(probability_map_phase_2[:, :, i] > -1)
+		vals = -probability_map_phase_2[y, x, i]
+		order = np.argsort(vals)[0:ncandidates]
+		y = y[order]
+		x = x[order]
 		x_candidates.append(x.tolist())
 		y_candidates.append(y.tolist())
 
 	b_mat = build_bmat_phase_3(xc, yc, T, x_candidates, y_candidates, edges, sde)
-
 	g = FactorGraph(silent=True)
 	nodes = [Variable('x%d' % i, len(x_candidates[i])) for i in range(nldms)]
 	for ip in range(nldms):
@@ -192,6 +185,13 @@ def main():
 		model_file.download(model_filepath, override=True)
 		clf = joblib.load(model_filepath)
 		pr_ims = [int(p) for p in conn.parameters.cytomine_predict_images.split(',')]
+		tifimg = readimage(in_path, pr_ims[0], image_type='tif')
+		init_h = 100
+		init_w = 100
+		if len(tifimg.shape)==3:
+			(init_h, init_w, init_d) = tifimg.shape
+		else:
+			(init_h, init_w) = tifimg.shape
 		offset_file = find_by_attribute(attached_files, "filename", "offsets_phase1.joblib")
 		offset_filepath = os.path.join(in_path, "offsets_phase1.joblib")
 		offset_file.download(offset_filepath, override=True)
@@ -246,10 +246,10 @@ def main():
 				filesave = os.path.join(out_path, 'pmap2_%d_%d.npy.npz' % (j, term_list[0]))
 				probability_volume[:,:,i] = np.load(filesave)['arr_0']
 			x_final, y_final = compute_final_solution_phase_3(Xc, Yc, probability_volume, conn.parameters.model_n_candidates, train_parameters['model_sde'], train_parameters['model_delta'], train_parameters['model_T'], edges)
-			lbl_img = np.zeros((hpmap, wpmap), 'uint8')
+			lbl_img = np.zeros((init_h, init_w), 'uint8')
 			for i in range(x_final.size):
-				x = int(x_final[i])
-				y = int(y_final[i])
+				x = min(init_w-1, max(0, int(x_final[i]/train_parameters['model_delta'])))
+				y = min(init_h-1, max(0, int(y_final[i]/train_parameters['model_delta'])))
 				lbl_img[y, x] = term_list[i]
 			imwrite(path=os.path.join(out_path, '%d.tif' % j), image=lbl_img.astype(np.uint8), is_2d=True)
 		upload_data(problem_cls, conn, in_images, out_path, **conn.flags, is_2d=True, monitor_params={"start": 90, "end": 95, "period": 0.1})
