@@ -119,9 +119,8 @@ def build_bmat_phase_3(xc, yc, T, x_candidates, y_candidates, edges, sde):
 		rel = B_mat[(ip, ipl)]
 		for i in range(len(x_candidates[ip])):
 			s = np.sum(rel[i, :])
-			#if s==0:
-			rel[i, :] = rel[i, :]+np.random.ranf(rel[i,:].size)
-			s = np.sum(rel[i,:])
+			if s==0:
+				rel[i, :] = rel[i, :]+1
 			rel[i, :] = rel[i,:]/s
 		B_mat[(ip, ipl)] = rel
 	return B_mat
@@ -139,9 +138,7 @@ def compute_final_solution_phase_3(xc, yc, probability_map_phase_2, ncandidates,
 		x = x[order]
 		x_candidates.append(x.tolist())
 		y_candidates.append(y.tolist())
-	print("candidat",x_candidates, y_candidates)
 	b_mat = build_bmat_phase_3(xc, yc, T, x_candidates, y_candidates, edges, sde)
-	print("b_mat", b_mat)
 	g = FactorGraph(silent=True)
 	nodes = [Variable('x%d' % i, len(x_candidates[i])) for i in range(nldms)]
 	for ip in range(nldms):
