@@ -244,8 +244,8 @@ def main():
 			x_final, y_final = compute_final_solution_phase_3(Xc, Yc, probability_volume, conn.parameters.model_n_candidates, train_parameters['model_sde'], train_parameters['model_delta'], train_parameters['model_T'], edges)
 			lbl_img = np.zeros((init_h, init_w), 'uint8')
 			for i in range(x_final.size):
-				x = min(init_w-1, max(0, int(x_final[i]/train_parameters['model_delta'])))
-				y = min(init_h-1, max(0, int(y_final[i]/train_parameters['model_delta'])))
+				x = min(init_w-1, max(0, int(x_final[i])))
+				y = min(init_h-1, max(0, int(y_final[i])))
 				lbl_img[y, x] = term_list[i]
 			imwrite(path=os.path.join(out_path, '%d.tif' % j), image=lbl_img.astype(np.uint8), is_2d=True)
 		upload_data(problem_cls, conn, in_images, out_path, **conn.flags, is_2d=True, monitor_params={"start": 90, "end": 95, "period": 0.1})
