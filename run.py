@@ -85,8 +85,6 @@ def agregation_phase_2(repository, image_number, ip, probability_maps, reg, delt
 
 
 def build_bmat_phase_3(xc, yc, T, x_candidates, y_candidates, edges, sde):
-	print("deze x_kandidaten zn", x_candidates)
-	print("deze y_kandidaten zn", y_candidates)
 	B_mat = {}  # np.zeros((ncandidates,ncandidates,T*nldms))
 
 	c = 0
@@ -222,12 +220,10 @@ def main():
 				reg_filepath = os.path.join(in_path, "reg_%d_phase2.joblib"%id_term)
 				reg_file.download(reg_filepath, override=True)
 				reg = joblib.load(reg_filepath)
-
 				off_file = find_by_attribute(attached_files, "filename", 'offsets_%d_phase2.joblib' % id_term)
 				off_filepath = os.path.join(in_path, 'offsets_%d_phase2.joblib' % id_term)
 				off_file.download(off_filepath, override=True)
 				feature_offsets_2 = joblib.load(off_filepath)
-
 				probability_map_phase_2 = agregation_phase_2(in_path, j, id_term, probability_map, reg, train_parameters['model_delta'], feature_offsets_2, conn.parameters.model_filter_size, conn.parameters.model_beta, conn.parameters.model_n_iterations)
 				filesave = os.path.join(out_path, 'pmap2_%d_%d.npy' % (j, id_term))
 				np.savez_compressed(filesave, probability_map_phase_2)
@@ -243,7 +239,7 @@ def main():
 			probability_volume = np.zeros((hpmap,wpmap,len(term_list)))
 			probability_volume[:,:,0] = probability_map
 			for i in range(1,len(term_list)):
-				filesave = os.path.join(out_path, 'pmap2_%d_%d.npy.npz' % (j, term_list[0]))
+				filesave = os.path.join(out_path, 'pmap2_%d_%d.npy.npz' % (j, term_list[i]))
 				probability_volume[:,:,i] = np.load(filesave)['arr_0']
 			x_final, y_final = compute_final_solution_phase_3(Xc, Yc, probability_volume, conn.parameters.model_n_candidates, train_parameters['model_sde'], train_parameters['model_delta'], train_parameters['model_T'], edges)
 			lbl_img = np.zeros((init_h, init_w), 'uint8')
