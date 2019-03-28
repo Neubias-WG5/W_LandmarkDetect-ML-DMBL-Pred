@@ -118,7 +118,11 @@ def build_bmat_phase_3(xc, yc, T, x_candidates, y_candidates, edges, sde):
 	for (ip, ipl) in B_mat.keys():
 		rel = B_mat[(ip, ipl)]
 		for i in range(len(x_candidates[ip])):
-			rel[i, :] = rel[i, :] / np.sum(rel[i, :])
+			s = np.sum(rel[i, :])
+			#if s==0:
+			rel[i, :] = rel[i, :]+np.random.ranf(rel[i,:].size)
+			s = np.sum(rel[i,:])
+			rel[i, :] = rel[i,:]/s
 		B_mat[(ip, ipl)] = rel
 	return B_mat
 
@@ -135,8 +139,9 @@ def compute_final_solution_phase_3(xc, yc, probability_map_phase_2, ncandidates,
 		x = x[order]
 		x_candidates.append(x.tolist())
 		y_candidates.append(y.tolist())
-
+	print("candidat",x_candidates, y_candidates)
 	b_mat = build_bmat_phase_3(xc, yc, T, x_candidates, y_candidates, edges, sde)
+	print("b_mat", b_mat)
 	g = FactorGraph(silent=True)
 	nodes = [Variable('x%d' % i, len(x_candidates[i])) for i in range(nldms)]
 	for ip in range(nldms):
@@ -224,7 +229,7 @@ def main():
 				off_filepath = os.path.join(in_path, 'offsets_%d_phase2.joblib' % id_term)
 				off_file.download(off_filepath, override=True)
 				feature_offsets_2 = joblib.load(off_filepath)
-				probability_map_phase_2 = agregation_phase_2(in_path, j, id_term, probability_map, reg, train_parameters['model_delta'], feature_offsets_2, conn.parameters.model_filter_size, conn.parameters.model_beta, conn.parameters.model_n_iterations)
+				probability_map_phase_2 = agregation_phase_2(in_path, j, id_term-1, probability_map, reg, train_parameters['model_delta'], feature_offsets_2, conn.parameters.model_filter_size, conn.parameters.model_beta, conn.parameters.model_n_iterations)
 				filesave = os.path.join(out_path, 'pmap2_%d_%d.npy' % (j, id_term))
 				np.savez_compressed(filesave, probability_map_phase_2)
 
